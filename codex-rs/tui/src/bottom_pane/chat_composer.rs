@@ -276,6 +276,11 @@ impl ChatComposer {
                         self.textarea.set_text(&format!("/{} ", cmd.command()));
                         self.textarea.set_cursor(self.textarea.text().len());
                     }
+                    // After completing the command, move cursor to the end.
+                    if !self.textarea.text().is_empty() {
+                        let end = self.textarea.text().len();
+                        self.textarea.set_cursor(end);
+                    }
                 }
                 (InputResult::None, true)
             }
@@ -747,6 +752,7 @@ mod tests {
     use crate::bottom_pane::InputResult;
     use crate::bottom_pane::chat_composer::LARGE_PASTE_CHAR_THRESHOLD;
     use crate::bottom_pane::textarea::TextArea;
+    use tokio::sync::mpsc::unbounded_channel;
 
     #[test]
     fn test_current_at_token_basic_cases() {
@@ -903,7 +909,7 @@ mod tests {
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -927,7 +933,7 @@ mod tests {
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -957,7 +963,7 @@ mod tests {
         use crossterm::event::KeyModifiers;
 
         let large = "y".repeat(LARGE_PASTE_CHAR_THRESHOLD + 1);
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -979,7 +985,7 @@ mod tests {
         use ratatui::Terminal;
         use ratatui::backend::TestBackend;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut terminal = match Terminal::new(TestBackend::new(100, 10)) {
             Ok(t) => t,
@@ -1035,9 +1041,9 @@ mod tests {
         use crossterm::event::KeyCode;
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
-        use std::sync::mpsc::TryRecvError;
+        use tokio::sync::mpsc::error::TryRecvError;
 
-        let (tx, rx) = std::sync::mpsc::channel();
+        let (tx, mut rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -1080,7 +1086,7 @@ mod tests {
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -1101,9 +1107,9 @@ mod tests {
         use crossterm::event::KeyCode;
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
-        use std::sync::mpsc::TryRecvError;
+        use tokio::sync::mpsc::error::TryRecvError;
 
-        let (tx, rx) = std::sync::mpsc::channel();
+        let (tx, mut rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -1143,7 +1149,7 @@ mod tests {
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -1217,7 +1223,7 @@ mod tests {
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
@@ -1284,7 +1290,7 @@ mod tests {
         use crossterm::event::KeyEvent;
         use crossterm::event::KeyModifiers;
 
-        let (tx, _rx) = std::sync::mpsc::channel();
+        let (tx, _rx) = unbounded_channel::<AppEvent>();
         let sender = AppEventSender::new(tx);
         let mut composer =
             ChatComposer::new(true, sender, false, "Ask Codex to do anything".to_string());
