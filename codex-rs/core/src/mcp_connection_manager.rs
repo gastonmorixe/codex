@@ -528,8 +528,8 @@ mod tests {
         assert!(!is_valid_mcp_server_name(""));
     }
 
-    #[tokio::test]
-    async fn test_wait_for_tools_returns_immediately_when_ready() {
+    #[test]
+    fn test_wait_for_tools_returns_immediately_when_ready() {
         // Arrange: manager with one tool already present and signal sent
         let mgr = McpConnectionManager::default();
 
@@ -542,8 +542,11 @@ mod tests {
             .send(mgr.tools.read().map(|m| m.len()).unwrap_or(0));
 
         // Act: should return without waiting
-        mgr.wait_for_tools_with_timeout(Duration::from_millis(1))
-            .await;
+        let rt = tokio::runtime::Runtime::new().expect("create tokio runtime");
+        rt.block_on(async {
+            mgr.wait_for_tools_with_timeout(Duration::from_millis(1))
+                .await;
+        });
     }
 
     #[test]
