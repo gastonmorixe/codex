@@ -182,7 +182,7 @@ impl McpConnectionManager {
                 };
                 match client_res {
                     Ok(client) => (server_name, Ok(client)),
-                    Err(e) => (server_name, Err(e.into())),
+                    Err(e) => (server_name, Err(e)),
                 }
             });
         }
@@ -531,7 +531,7 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_tools_returns_immediately_when_ready() {
         // Arrange: manager with one tool already present and signal sent
-        let mut mgr = McpConnectionManager::default();
+        let mgr = McpConnectionManager::default();
 
         {
             let mut guard = mgr.tools.write().expect("lock tools for write");
@@ -548,7 +548,7 @@ mod tests {
 
     #[test]
     fn test_parse_tool_name_reads_from_cache() {
-        let mut mgr = McpConnectionManager::default();
+        let mgr = McpConnectionManager::default();
         {
             let mut guard = mgr.tools.write().expect("lock tools for write");
             guard.insert(
@@ -562,7 +562,7 @@ mod tests {
 
     #[test]
     fn test_list_all_tools_snapshot() {
-        let mut mgr = McpConnectionManager::default();
+        let mgr = McpConnectionManager::default();
         {
             let mut guard = mgr.tools.write().expect("lock tools for write");
             guard.insert("s__a".to_string(), create_test_tool("s", "a"));
