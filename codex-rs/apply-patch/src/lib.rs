@@ -529,9 +529,9 @@ fn compute_replacements(
     let mut line_index: usize = 0;
 
     for chunk in chunks {
-        // If a chunk has a `change_context`, we use seek_sequence to find it, then
+        // If a chunk has context lines, we use seek_sequence to find each in order, then
         // adjust our `line_index` to continue from there.
-        if let Some(ctx_line) = &chunk.change_context {
+        for ctx_line in &chunk.context_lines {
             if let Some(idx) = seek_sequence::seek_sequence(
                 original_lines,
                 std::slice::from_ref(ctx_line),
