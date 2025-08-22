@@ -360,16 +360,15 @@ fn parse_update_file_chunk(
             break;
         }
     }
-    if !saw_context_marker
-        && !allow_missing_context {
-            return Err(InvalidHunkError {
-                message: format!(
-                    "Expected update hunk to start with a @@ context marker, got: '{}'",
-                    lines[0]
-                ),
-                line_number,
-            });
-        }
+    if !saw_context_marker && !allow_missing_context {
+        return Err(InvalidHunkError {
+            message: format!(
+                "Expected update hunk to start with a @@ context marker, got: '{}'",
+                lines[0]
+            ),
+            line_number,
+        });
+    }
     if start_index >= lines.len() {
         return Err(InvalidHunkError {
             message: "Update hunk does not contain any lines".to_string(),
