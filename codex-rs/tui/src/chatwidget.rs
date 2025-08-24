@@ -670,9 +670,7 @@ impl ChatWidget {
                 if let Some(cmd) = trimmed.strip_prefix("!") {
                     let raw_cmd = cmd.trim().to_string();
                     if !raw_cmd.is_empty() {
-                        self.submit_op(Op::LocalExec {
-                            raw_cmd
-                        });
+                        self.submit_op(Op::LocalExec { raw_cmd });
                     }
                 } else {
                     let images = self.bottom_pane.take_recent_submission_images();
