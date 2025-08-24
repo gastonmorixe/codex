@@ -29,6 +29,7 @@ pub mod landlock;
 mod mcp_connection_manager;
 mod mcp_tool_call;
 mod message_history;
+mod local_exec;
 mod model_provider_info;
 pub mod parse_command;
 pub use model_provider_info::BUILT_IN_OSS_MODEL_PROVIDER_ID;
