@@ -1165,7 +1165,6 @@ fn output_lines(
     let src = if *exit_code == 0 { stdout } else { stderr };
     let lines: Vec<&str> = src.lines().collect();
     let total = lines.len();
-    let limit = limit;
 
     let mut out = Vec::new();
 
