@@ -28,9 +28,9 @@ impl LocalExecRuntime {
 }
 
 /// Configure child process before exec: on Unix, create a new process group so
-/// we can signal the entire tree later. No-op on other platforms.
+/// we can signal the entire tree later.
+#[cfg(unix)]
 pub(crate) fn configure_child(cmd: &mut tokio::process::Command) {
-    #[cfg(unix)]
     unsafe {
         cmd.pre_exec(|| {
             libc::setpgid(0, 0);
@@ -39,25 +39,29 @@ pub(crate) fn configure_child(cmd: &mut tokio::process::Command) {
     }
 }
 
+/// No-op on non-Unix platforms.
+#[cfg(not(unix))]
+pub(crate) fn configure_child(_cmd: &mut tokio::process::Command) {}
+
 /// Record the spawned child so future interrupts can target it.
+#[cfg(unix)]
 pub(crate) fn record_child(runtime: &LocalExecRuntime, pid_opt: Option<u32>) {
-    #[cfg(unix)]
-    {
-        if let Some(pid_u32) = pid_opt {
-            let pid = pid_u32 as i32;
-            // If getpgid fails, fall back to pid.
-            let pgid = unsafe { libc::getpgid(pid) };
-            let value = if pgid > 0 { pgid } else { pid };
-            if let Ok(mut guard) = runtime.pgid.lock() {
-                *guard = Some(value);
-            }
+    if let Some(pid_u32) = pid_opt {
+        let pid = pid_u32 as i32;
+        // If getpgid fails, fall back to pid.
+        let pgid = unsafe { libc::getpgid(pid) };
+        let value = if pgid > 0 { pgid } else { pid };
+        if let Ok(mut guard) = runtime.pgid.lock() {
+            *guard = Some(value);
         }
     }
-    #[cfg(not(unix))]
-    {
-        if let Ok(mut guard) = runtime.running.lock() {
-            *guard = true;
-        }
+}
+
+/// Minimal tracking on non-Unix platforms for in-progress state.
+#[cfg(not(unix))]
+pub(crate) fn record_child(runtime: &LocalExecRuntime, _pid_opt: Option<u32>) {
+    if let Ok(mut guard) = runtime.running.lock() {
+        *guard = true;
     }
 }
 
