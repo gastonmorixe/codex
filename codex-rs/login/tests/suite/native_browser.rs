@@ -7,7 +7,8 @@ use std::thread;
 use base64::Engine;
 use codex_login::LoginError;
 use codex_login::login_with_native_browser;
-use std::sync::{Mutex, OnceLock};
+use std::sync::Mutex;
+use std::sync::OnceLock;
 use tempfile::tempdir;
 
 // Skip tests when running in a sandbox with network disabled.
