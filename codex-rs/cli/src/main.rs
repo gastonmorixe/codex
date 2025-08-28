@@ -21,6 +21,7 @@ mod mcp_cmd;
 
 use crate::mcp_cmd::McpCli;
 use crate::proto::ProtoCli;
+mod sessions;
 
 /// Codex CLI
 ///
@@ -82,6 +83,9 @@ enum Subcommand {
     /// Internal: generate TypeScript protocol bindings.
     #[clap(hide = true)]
     GenerateTs(GenerateTsCommand),
+
+    /// Manage and inspect Codex sessions.
+    Sessions(sessions::SessionsCli),
 }
 
 #[derive(Debug, Parser)]
@@ -275,6 +279,9 @@ async fn cli_main(codex_linux_sandbox_exe: Option<PathBuf>) -> anyhow::Result<()
         }
         Some(Subcommand::GenerateTs(gen_cli)) => {
             codex_protocol_ts::generate_ts(&gen_cli.out_dir, gen_cli.prettier.as_deref())?;
+        }
+        Some(Subcommand::Sessions(cli)) => {
+            sessions::run_sessions_main(cli).await?;
         }
     }
 

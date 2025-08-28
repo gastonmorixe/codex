@@ -92,6 +92,33 @@ codex --sandbox danger-full-access
 
 The same setting can be persisted in `~/.codex/config.toml` via the top-level `sandbox_mode = "MODE"` key, e.g. `sandbox_mode = "workspace-write"`.
 
+### Sessions: resume, pick, and name
+
+Codex records each interactive session as a JSONL “rollout” under `~/.codex/sessions/YYYY/MM/DD/rollout-<timestamp>-<uuid>.jsonl`.
+
+- Resume directly:
+  - `codex --experimental-resume /absolute/path/to/rollout-...jsonl`
+- Open a picker of recent sessions (newest first):
+  - `codex --experimental-list-sessions`
+  - Limit rows: `codex --experimental-list-sessions --experimental-sessions-limit 25`
+- Prompted resume (picker) when you don’t pass a path:
+  - `codex --experimental-resume`
+
+The picker uses the same TUI look-and-feel:
+- Up/Down: move; Enter: resume; Esc: cancel.
+- Rows include time, id prefix, and a title (session name or first line of instructions).
+
+There’s also a sessions multitool:
+
+```
+codex sessions list [-n 25] [--json]
+codex sessions name <id-or-path> "My Friendly Name"
+```
+
+Notes:
+- `<id-or-path>` accepts a rollout path or a UUID prefix (first 8 chars).
+- Names are stored as `state` records appended to the rollout file; headers are not rewritten.
+
 ## Code Organization
 
 This folder is the root of a Cargo workspace. It contains quite a bit of experimental code, but here are the key crates:

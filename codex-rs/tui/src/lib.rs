@@ -57,6 +57,7 @@ mod pager_overlay;
 mod render;
 mod resume_picker;
 mod session_log;
+mod sessions_picker;
 mod shimmer;
 mod slash_command;
 mod status_indicator_widget;

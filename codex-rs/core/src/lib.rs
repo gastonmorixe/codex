@@ -58,7 +58,7 @@ mod openai_model_info;
 mod openai_tools;
 pub mod plan_tool;
 pub mod project_doc;
-mod rollout;
+pub mod rollout;
 pub(crate) mod safety;
 pub mod seatbelt;
 pub mod shell;
