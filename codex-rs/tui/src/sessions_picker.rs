@@ -41,7 +41,6 @@ use uuid::Uuid;
 use walkdir::WalkDir;
 
 use crate::bottom_pane::GenericDisplayRow;
-use crate::bottom_pane::MAX_POPUP_ROWS;
 use crate::bottom_pane::ScrollState;
 use crate::bottom_pane::render_rows;
 use crate::tui::FrameRequester;
@@ -772,7 +771,7 @@ fn repo_host_from_url(u: &str) -> Option<String> {
 }
 
 fn last_activity_ago(p: &Path) -> Option<String> {
-    use std::time::{Duration, SystemTime, UNIX_EPOCH};
+    use std::time::SystemTime;
     let meta = std::fs::metadata(p).ok()?;
     let mt = meta.modified().ok()?;
     let now = SystemTime::now();
