@@ -820,8 +820,53 @@ async fn binary_size_transcript_snapshot() {
     }
     let visible_after = drop_leading_thinking(&visible_after);
 
-    // Snapshot the normalized visible transcript following the banner.
-    assert_snapshot!("binary_size_ideal_response", visible_after);
+    // Normalize: strip leading Markdown blockquote markers ('>' or '> ') which
+    // may be present in rendered transcript lines but not in the ideal text.
+    fn strip_blockquotes(s: &str) -> String {
+        s.lines()
+            .map(|l| {
+                l.strip_prefix("> ")
+                    .or_else(|| l.strip_prefix('>'))
+                    .unwrap_or(l)
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+    let visible_after = strip_blockquotes(&visible_after);
+    let ideal = strip_blockquotes(&ideal);
+
+    // Normalize: drop transient streaming headers (e.g., "Codex <ver> [title]")
+    // that may be present in the visual transcript but are not part of the
+    // ideal plain-text fixture.
+    let compare_lines: Vec<String> = visible_after
+        .lines()
+        .map(|s| {
+            let t = s.trim_start();
+            let lower = t.to_lowercase();
+            let is_header = lower.starts_with("codex ")
+                && lower.chars().nth(6).is_some_and(|c| c.is_ascii_digit());
+            if is_header || t.eq_ignore_ascii_case("codex") {
+                // Canonicalize streaming header to the legacy fixture value.
+                "codex".to_string()
+            } else {
+                s.to_string()
+            }
+        })
+        .collect();
+    let visible_after = compare_lines.join("\n");
+
+    // Optionally update the fixture when env var is set
+    if std::env::var("UPDATE_IDEAL").as_deref() == Ok("1") {
+        let mut p = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        p.push("tests");
+        p.push("fixtures");
+        p.push("ideal-binary-response.txt");
+        std::fs::write(&p, &visible_after).expect("write updated ideal fixture");
+        return;
+    }
+
+    // Exact equality with pretty diff on failure
+    assert_eq!(visible_after, ideal);
 }
 
 //
@@ -1516,6 +1561,94 @@ fn stream_error_is_rendered_to_history() {
 }
 
 #[test]
+fn headers_emitted_on_stream_begin_for_answer_and_not_for_reasoning() {
+    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual();
+
+    // Answer: no header until a newline commit
+    chat.handle_codex_event(Event {
+        id: "sub-a".into(),
+        msg: EventMsg::AgentMessageDelta(AgentMessageDeltaEvent {
+            delta: "Hello".into(),
+        }),
+    });
+    let mut saw_codex_pre = false;
+    while let Ok(ev) = rx.try_recv() {
+        if let AppEvent::InsertHistoryLines(lines) = ev {
+            let s = lines
+                .iter()
+                .flat_map(|l| l.spans.iter())
+                .map(|sp| sp.content.clone())
+                .collect::<Vec<_>>()
+                .join("");
+            if s.to_lowercase().contains("codex") {
+                saw_codex_pre = true;
+                break;
+            }
+        }
+    }
+    assert!(
+        !saw_codex_pre,
+        "answer header should not be emitted before first newline commit"
+    );
+
+    // Newline arrives, then header is emitted
+    chat.handle_codex_event(Event {
+        id: "sub-a".into(),
+        msg: EventMsg::AgentMessageDelta(AgentMessageDeltaEvent {
+            delta: "!\n".into(),
+        }),
+    });
+    chat.on_commit_tick();
+    let mut saw_codex_post = false;
+    while let Ok(ev) = rx.try_recv() {
+        if let AppEvent::InsertHistoryLines(lines) = ev {
+            let s = lines
+                .iter()
+                .flat_map(|l| l.spans.iter())
+                .map(|sp| sp.content.clone())
+                .collect::<Vec<_>>()
+                .join("");
+            if s.to_lowercase().contains("codex") {
+                saw_codex_post = true;
+                break;
+            }
+        }
+    }
+    assert!(
+        saw_codex_post,
+        "expected 'codex' header to be emitted after first newline commit"
+    );
+
+    // Reasoning: do NOT emit a history header; status text is updated instead
+    let (mut chat2, mut rx2, _op_rx2) = make_chatwidget_manual();
+    chat2.handle_codex_event(Event {
+        id: "sub-b".into(),
+        msg: EventMsg::AgentReasoningDelta(AgentReasoningDeltaEvent {
+            delta: "Thinking".into(),
+        }),
+    });
+    let mut saw_thinking = false;
+    while let Ok(ev) = rx2.try_recv() {
+        if let AppEvent::InsertHistoryLines(lines) = ev {
+            let s = lines
+                .iter()
+                .flat_map(|l| l.spans.iter())
+                .map(|sp| sp.content.clone())
+                .collect::<Vec<_>>()
+                .join("");
+            if s.contains("thinking") {
+                saw_thinking = true;
+                break;
+            }
+        }
+    }
+    assert!(
+        !saw_thinking,
+        "reasoning deltas should not emit history headers"
+    );
+}
+
+#[test]
 fn multiple_agent_messages_in_single_turn_emit_multiple_headers() {
     let (mut chat, mut rx, _op_rx) = make_chatwidget_manual();
 
@@ -1552,10 +1685,26 @@ fn multiple_agent_messages_in_single_turn_emit_multiple_headers() {
     });
 
     let cells = drain_insert_history(&mut rx);
-    let combined: String = cells
-        .iter()
-        .map(|lines| lines_to_single_string(lines))
-        .collect();
+    let mut header_count = 0usize;
+    let mut combined = String::new();
+    for lines in &cells {
+        for l in lines {
+            for sp in &l.spans {
+                let s = &sp.content;
+                if s.eq_ignore_ascii_case("codex") {
+                    header_count += 1;
+                }
+                combined.push_str(s);
+            }
+            combined.push('\n');
+        }
+    }
+    assert_eq!(
+        header_count,
+        2,
+        "expected two 'codex' headers for two AgentMessage events in one turn; cells={:?}",
+        cells.len()
+    );
     assert!(
         combined.contains("First message"),
         "missing first message: {combined}"

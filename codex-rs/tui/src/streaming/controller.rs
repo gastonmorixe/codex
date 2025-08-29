@@ -362,7 +362,7 @@ mod tests {
         }
         if !flat.is_empty() {
             let s0 = lines_to_plain_strings(&[flat[0].clone()])[0].clone();
-            if s0 == "codex" {
+            if s0.to_lowercase().starts_with("codex") {
                 flat.remove(0);
             }
         }

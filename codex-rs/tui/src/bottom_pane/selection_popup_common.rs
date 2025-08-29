@@ -21,8 +21,8 @@ use super::scroll_state::ScrollState;
 pub(crate) struct GenericDisplayRow {
     pub name: String,
     pub match_indices: Option<Vec<usize>>, // indices to bold (char positions)
-    pub is_current: bool,
-    pub description: Option<String>, // optional grey text after the name
+    pub is_current: bool,                  // used to hint cwd match (styled green)
+    pub description: Option<String>,       // optional grey text after the name
 }
 
 impl GenericDisplayRow {}
@@ -71,12 +71,18 @@ pub(crate) fn render_rows(
             let GenericDisplayRow {
                 name,
                 match_indices,
-                is_current: _is_current,
+                is_current,
                 description,
             } = row;
 
             // Highlight fuzzy indices when present.
-            let mut spans: Vec<Span> = Vec::with_capacity(name.len());
+            let mut spans: Vec<Span> = Vec::with_capacity(name.len() + 2);
+            // Selection arrow prefix for the active row.
+            if Some(i) == state.selected_idx {
+                spans.push(Span::raw("› "));
+            } else {
+                spans.push(Span::raw("  "));
+            }
             if let Some(idxs) = match_indices.as_ref() {
                 let mut idx_iter = idxs.iter().peekable();
                 for (char_idx, ch) in name.chars().enumerate() {
@@ -97,12 +103,15 @@ pub(crate) fn render_rows(
             }
 
             let mut cell = Cell::from(Line::from(spans));
+            // Selected row highlighted cyan; otherwise, cwd-matching rows are green.
             if Some(i) == state.selected_idx {
                 cell = cell.style(
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
                 );
+            } else if *is_current {
+                cell = cell.style(Style::default().fg(Color::Green));
             }
             rows.push(Row::new(vec![cell]));
         }

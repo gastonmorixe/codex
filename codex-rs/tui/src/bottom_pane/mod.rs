@@ -45,7 +45,8 @@ pub(crate) use list_selection_view::SelectionItem;
 // Re-export shared popup helpers/constants for consistent styling across the crate.
 pub(crate) use popup_consts::MAX_POPUP_ROWS;
 pub(crate) use scroll_state::ScrollState;
-pub(crate) use selection_popup_common::{GenericDisplayRow, render_rows};
+pub(crate) use selection_popup_common::GenericDisplayRow;
+pub(crate) use selection_popup_common::render_rows;
 
 /// Pane displayed in the lower half of the chat UI.
 pub(crate) struct BottomPane {

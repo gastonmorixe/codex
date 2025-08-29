@@ -245,6 +245,21 @@ To disable reasoning summaries, set `model_reasoning_summary` to `"none"` in you
 model_reasoning_summary = "none"  # disable reasoning summaries
 ```
 
+## auto_session_title
+
+Controls whether Codex automatically suggests a concise, human‑friendly title for each session and persists it to the rollout file. When enabled, the title is generated in the background after the first assistant reply (and only once per session). User‑provided names always take precedence and are never overwritten.
+
+Default: `true`.
+
+```toml
+# ~/.codex/config.toml
+auto_session_title = true   # enable (default)
+
+# or disable entirely
+auto_session_title = false
+```
+
+
 ## model_verbosity
 
 Controls output length/detail on GPT‑5 family models when using the Responses API. Supported values:

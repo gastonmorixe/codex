@@ -104,9 +104,13 @@ Codex records each interactive session as a JSONL “rollout” under `~/.codex/
 - Prompted resume (picker) when you don’t pass a path:
   - `codex --experimental-resume`
 
-The picker uses the same TUI look-and-feel:
-- Up/Down: move; Enter: resume; Esc: cancel.
-- Rows include time, id prefix, and a title (session name or first line of instructions).
+The picker uses the same TUI look-and-feel and now includes richer context:
+- Up/Down/PageUp/PageDown/Home/End: navigate; Enter: resume; Esc: cancel.
+- Two-line rows: time, 8-char id, bold title, badges for `[branch]`, approximate turns, and duration; secondary line shows repo host + short SHA + shortened path.
+- Footer preview: shows first user prompt and last assistant reply snippets; warns if recorded `cwd` differs from your current `cwd`, and if repository hosts differ.
+- Actions: `r` rename (persists to rollout), `d` delete (confirm), `u` undo delete, `y` copy path, `c` copy full UUID, `i` copy 8-char id.
+- Filter: `/` to filter; type to live-filter title/branch/repo/path; Enter keeps filter; Esc clears.
+
 
 There’s also a sessions multitool:
 
@@ -118,6 +122,7 @@ codex sessions name <id-or-path> "My Friendly Name"
 Notes:
 - `<id-or-path>` accepts a rollout path or a UUID prefix (first 8 chars).
 - Names are stored as `state` records appended to the rollout file; headers are not rewritten.
+- Titles can also be generated automatically (enabled by default) — see `auto_session_title` in `docs/config.md`.
 
 ## Code Organization
 

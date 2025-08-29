@@ -428,6 +428,27 @@ impl ChatWidget {
 
     fn on_background_event(&mut self, message: String) {
         debug!("BackgroundEvent: {message}");
+        // Recognize auto-title updates and store for header rendering.
+        if let Some(rest) = message.strip_prefix("auto-title:") {
+            let msg = rest.trim();
+            // Match saved/new titles of the form:
+            //  - "saved: <title>"
+            //  - "ready (not yet saved): <title>"
+            if let Some(title) = msg
+                .strip_prefix("saved:")
+                .or_else(|| msg.strip_prefix("ready (not yet saved):"))
+            {
+                let title = title.trim().to_string();
+                crate::session_title::set(title);
+                // Request a redraw so subsequent headers use the latest title.
+                self.request_redraw();
+            }
+            // Also surface the status line to the transcript for visibility.
+            self.add_to_history(history_cell::new_stream_error_event(message));
+        } else {
+            // Non auto-title background events: just show them dimmed.
+            self.add_to_history(history_cell::new_stream_error_event(message));
+        }
     }
 
     fn on_stream_error(&mut self, message: String) {
