@@ -72,18 +72,3 @@ impl HeaderEmitter {
         }
     }
 }
-
-fn render_header_line() -> ratatui::text::Line<'static> {
-    use ratatui::style::Stylize;
-    let mut spans: Vec<ratatui::text::Span<'static>> = Vec::new();
-    spans.push("Codex".magenta().bold());
-    spans.push(ratatui::text::Span::raw(" "));
-    // Show version dimmed
-    let ver = env!("CARGO_PKG_VERSION");
-    spans.push(ver.dim());
-    if let Some(title) = crate::session_title::get() {
-        spans.push(ratatui::text::Span::raw("   "));
-        spans.push(title.cyan());
-    }
-    ratatui::text::Line::from(spans)
-}

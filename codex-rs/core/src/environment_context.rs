@@ -140,7 +140,7 @@ impl EnvironmentContext {
             lines.push(format!("  <shell>{shell_name}</shell>"));
         }
         if let Some(id) = self.session_id {
-            lines.push(format!("  <session_id>{}</session_id>", id));
+            lines.push(format!("  <session_id>{id}</session_id>"));
         }
         if let Some(title) = self.session_title {
             lines.push(format!("  <session_title>{title}</session_title>"));

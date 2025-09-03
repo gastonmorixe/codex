@@ -200,7 +200,7 @@ fn build_row_text(e: &SessionEntry) -> (String, String) {
         .duration_secs
         .map(|s| {
             if s < 90 {
-                format!("{}s", s)
+                format!("{s}s")
             } else if s < 90 * 60 {
                 format!("{}m", s / 60)
             } else {
@@ -214,9 +214,9 @@ fn build_row_text(e: &SessionEntry) -> (String, String) {
         String::new()
     };
     let badge = match (branch, dur.is_empty()) {
-        (Some(b), false) => format!(" [{}]{}  {}", b, turns, dur),
-        (Some(b), true) => format!(" [{}]{}", b, turns),
-        (None, false) => format!("{}  {}", turns, dur),
+        (Some(b), false) => format!(" [{b}]{turns}  {dur}"),
+        (Some(b), true) => format!(" [{b}]{turns}"),
+        (None, false) => format!("{turns}  {dur}"),
         (None, true) => turns,
     };
     let primary = format!("{time_str}  {id8}  {}", e.title);
@@ -309,7 +309,7 @@ impl SessionsPickerWidget {
                 .duration_secs
                 .map(|s| {
                     if s < 90 {
-                        format!("{}s", s)
+                        format!("{s}s")
                     } else if s < 90 * 60 {
                         format!("{}m", s / 60)
                     } else {
@@ -323,9 +323,9 @@ impl SessionsPickerWidget {
                 String::new()
             };
             let badge = match (branch, dur.is_empty()) {
-                (Some(b), false) => format!(" [{}]{}  {}", b, turns, dur),
-                (Some(b), true) => format!(" [{}]{}", b, turns),
-                (None, false) => format!("{}  {}", turns, dur),
+                (Some(b), false) => format!(" [{b}]{turns}  {dur}"),
+                (Some(b), true) => format!(" [{b}]{turns}"),
+                (None, false) => format!("{turns}  {dur}"),
                 (None, true) => turns,
             };
             let primary = format!("{time_str}  {id8}  {}", e.title);
@@ -366,7 +366,7 @@ impl SessionsPickerWidget {
             }
             if let Some(ago) = last_activity_ago(&e.path) {
                 secondary.push_str("  ");
-                secondary.push_str(&format!("last: {}", ago));
+                secondary.push_str(&format!("last: {ago}"));
             }
 
             // Compose one logical row; renderer will style parts. Keep secondary in description.
@@ -622,7 +622,7 @@ fn preview_lines(w: &SessionsPickerWidget) -> Vec<Line<'static>> {
         out.push(Line::from(
             "⚠ you are resuming a session that was not initiated in the same path ⚠".red(),
         ));
-        out.push(Line::from(format!("Recorded path: {}", recorded).red()));
+        out.push(Line::from(format!("Recorded path: {recorded}").red()));
         out.push(Line::from(
             format!("Current path: {}", shorten_path(&w.current_cwd)).red(),
         ));
@@ -676,7 +676,7 @@ fn preview_lines(w: &SessionsPickerWidget) -> Vec<Line<'static>> {
                 && let Some(cur_host) = current_repo_host(&w.current_cwd)
                 && entry_host != cur_host
             {
-                parts.push(format!("⚠ repo differs: {} vs {}", entry_host, cur_host).red());
+                parts.push(format!("⚠ repo differs: {entry_host} vs {cur_host}").red());
                 parts.push("  ".into());
             }
             if let Some((first, last)) = w
@@ -685,9 +685,9 @@ fn preview_lines(w: &SessionsPickerWidget) -> Vec<Line<'static>> {
                 .cloned()
                 .or_else(|| read_snippets(row))
             {
-                parts.push(format!("First: {}", first).dim());
+                parts.push(format!("First: {first}").dim());
                 parts.push("  ".dim());
-                parts.push(format!("Last: {}", last).dim());
+                parts.push(format!("Last: {last}").dim());
             }
             if !parts.is_empty() {
                 out.push(Line::from(parts));
@@ -782,7 +782,7 @@ fn last_activity_ago(p: &Path) -> Option<String> {
 fn human_ago(d: std::time::Duration) -> String {
     let s = d.as_secs();
     if s < 90 {
-        return format!("{}s ago", s);
+        return format!("{s}s ago");
     }
     if s < 90 * 60 {
         return format!("{}m ago", s / 60);
@@ -1059,7 +1059,7 @@ pub(crate) async fn run_sessions_picker_app(
                                 && let Some(e) = widget.selected_entry_mut()
                             {
                                 let id8 = &e.id.as_hyphenated().to_string()[..8];
-                                widget.last_action_hint = Some(format!("id8 copied: {}", id8));
+                                widget.last_action_hint = Some(format!("id8 copied: {id8}"));
                                 request_frame.schedule_frame();
                             }
                         }

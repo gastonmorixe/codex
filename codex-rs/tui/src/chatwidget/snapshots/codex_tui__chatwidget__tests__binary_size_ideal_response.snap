@@ -1,9 +1,9 @@
 ---
 source: tui/src/chatwidget/tests.rs
-assertion_line: 648
+assertion_line: 662
 expression: visible_after
 ---
-> I’m going to scan the workspace and Cargo manifests to see build profiles and
+I’m going to scan the workspace and Cargo manifests to see build profiles and
   dependencies that impact binary size. Then I’ll summarize the main causes.
 
 • Explored
@@ -19,7 +19,7 @@ expression: visible_after
 • Explored
   └ Read Cargo.toml
 
-> Here’s what’s driving size in this workspace’s binaries.
+Here’s what’s driving size in this workspace’s binaries.
 
   Main Causes
 
@@ -53,6 +53,6 @@ expression: visible_after
   - Debug builds: cargo build (dev profile) includes full debuginfo, no LTO, and
   assertions—outputs are much larger than cargo build --release.
 
-  If you want, I can outline targeted trims (e.g., strip = "debuginfo", opt-
-  level = "z", panic abort, tighter tokio/reqwest features) and estimate impact
-  per binary.
+  If you want, I can outline targeted trims (e.g., strip = "debuginfo",
+  opt-level = "z", panic abort, tighter tokio/reqwest features) and estimate
+  impact per binary.

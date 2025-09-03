@@ -1,5 +1,6 @@
+---
 source: tui/src/chatwidget/tests.rs
+assertion_line: 1595
 expression: combined
 ---
-Codex 0.0.0
-Here is the result.
+> Here is the result.

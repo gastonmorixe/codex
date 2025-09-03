@@ -209,7 +209,8 @@ fn compact_time(iso_ts: &str) -> String {
 }
 
 fn file_last_activity(p: &Path) -> (Option<String>, Option<u64>) {
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::time::SystemTime;
+    use std::time::UNIX_EPOCH;
     let meta = match std::fs::metadata(p) {
         Ok(m) => m,
         Err(_) => return (None, None),
