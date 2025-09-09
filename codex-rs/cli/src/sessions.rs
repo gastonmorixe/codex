@@ -11,8 +11,8 @@ use codex_common::CliConfigOverrides;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::rollout::SessionStateSnapshot;
-use codex_core::rollout::append_state_line;
-use codex_core::rollout::read_session_header_and_state;
+use codex_core::rollout::recorder::append_state_line;
+use codex_core::rollout::recorder::read_session_header_and_state;
 use std::path::Path;
 use std::path::PathBuf;
 use walkdir::WalkDir;
@@ -142,7 +142,7 @@ fn collect_sessions(root: &Path, _limit: usize) -> std::io::Result<Vec<FullEntry
             // File metadata for last activity
             let (ago, epoch) = file_last_activity(entry.path());
             out.push(FullEntry {
-                id: meta.id,
+                id: meta.id.into(),
                 timestamp: meta.timestamp,
                 state,
                 path: entry.path().to_path_buf(),

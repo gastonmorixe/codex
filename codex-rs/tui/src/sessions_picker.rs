@@ -18,7 +18,8 @@ use chrono::NaiveDate;
 use codex_core::git_info::GitInfo;
 use codex_core::git_info::resolve_root_git_project_for_trust;
 use codex_core::rollout::SessionMeta;
-use codex_core::rollout::read_session_header_and_state;
+use codex_core::rollout::recorder::append_state_line;
+use codex_core::rollout::recorder::read_session_header_and_state;
 use color_eyre::eyre::Result;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Alignment;
@@ -132,7 +133,7 @@ fn read_header(path: &Path) -> std::io::Result<Option<SessionEntry>> {
     }
     let approx_turns = non_empty.saturating_sub(1 + state_lines);
     Ok(Some(SessionEntry {
-        id: meta.id,
+        id: meta.id.into(),
         when,
         title,
         path: path.to_path_buf(),
@@ -576,6 +577,7 @@ impl Widget for &mut SessionsPickerWidget {
             &self.state,
             self.visible_rows,
             false,
+            "No sessions found",
         );
 
         let hint = Paragraph::new(preview_lines(self))
@@ -1070,7 +1072,7 @@ pub(crate) async fn run_sessions_picker_app(
                                 if let Some(entry) = widget.selected_entry_mut()
                                     && !new_name.is_empty()
                                 {
-                                    let _ = codex_core::rollout::append_state_line(
+                                    let _ = append_state_line(
                                         &entry.path,
                                         &codex_core::rollout::SessionStateSnapshot {
                                             name: Some(new_name.clone()),

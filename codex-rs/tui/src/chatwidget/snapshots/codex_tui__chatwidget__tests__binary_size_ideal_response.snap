@@ -1,6 +1,6 @@
 ---
 source: tui/src/chatwidget/tests.rs
-assertion_line: 662
+assertion_line: 814
 expression: visible_after
 ---
 I’m going to scan the workspace and Cargo manifests to see build profiles and
@@ -53,6 +53,6 @@ Here’s what’s driving size in this workspace’s binaries.
   - Debug builds: cargo build (dev profile) includes full debuginfo, no LTO, and
   assertions—outputs are much larger than cargo build --release.
 
-  If you want, I can outline targeted trims (e.g., strip = "debuginfo",
-  opt-level = "z", panic abort, tighter tokio/reqwest features) and estimate
-  impact per binary.
+  If you want, I can outline targeted trims (e.g., strip = "debuginfo", opt-
+  level = "z", panic abort, tighter tokio/reqwest features) and estimate impact
+  per binary.
