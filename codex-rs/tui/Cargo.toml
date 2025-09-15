@@ -86,6 +86,7 @@ unicode-width = "0.1"
 url = "2"
 pathdiff = "0.2"
 walkdir = "2"
+uuid = "1"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

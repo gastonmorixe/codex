@@ -15,11 +15,12 @@ use chrono::DateTime;
 use chrono::Utc;
 // NaiveDate used by date headers
 use chrono::NaiveDate;
-use codex_core::git_info::GitInfo;
+use codex_protocol::protocol::GitInfo;
 use codex_core::git_info::resolve_root_git_project_for_trust;
 use codex_core::rollout::SessionMeta;
 use codex_core::rollout::recorder::append_state_line;
 use codex_core::rollout::recorder::read_session_header_and_state;
+use codex_core::rollout::recorder::SessionStateSnapshot;
 use color_eyre::eyre::Result;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Alignment;
@@ -137,7 +138,7 @@ fn read_header(path: &Path) -> std::io::Result<Option<SessionEntry>> {
         when,
         title,
         path: path.to_path_buf(),
-        cwd: meta.cwd.map(PathBuf::from),
+        cwd: Some(meta.cwd.clone()),
         git: header.git,
         approx_turns,
         duration_secs,
@@ -171,7 +172,7 @@ fn collect_recent_sessions(codex_home: &Path, limit: usize) -> std::io::Result<V
 }
 
 fn shorten_path(p: &Path) -> String {
-    let home = dirs_next::home_dir();
+    let home = dirs::home_dir();
     let s = p.to_string_lossy();
     match (home.as_ref(), &*s) {
         (Some(h), s) => {
@@ -1074,9 +1075,7 @@ pub(crate) async fn run_sessions_picker_app(
                                 {
                                     let _ = append_state_line(
                                         &entry.path,
-                                        &codex_core::rollout::SessionStateSnapshot {
-                                            name: Some(new_name.clone()),
-                                        },
+                                        &SessionStateSnapshot { name: Some(new_name.clone()) },
                                     );
                                     entry.title = new_name;
                                     widget.rebuild_from_filter();

@@ -56,6 +56,7 @@ pub mod onboarding;
 mod pager_overlay;
 mod render;
 mod resume_picker;
+mod session_title;
 mod session_log;
 mod sessions_picker;
 mod shimmer;

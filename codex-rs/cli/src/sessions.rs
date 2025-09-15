@@ -10,7 +10,7 @@ use clap::Subcommand;
 use codex_common::CliConfigOverrides;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
-use codex_core::rollout::SessionStateSnapshot;
+use codex_core::rollout::recorder::SessionStateSnapshot;
 use codex_core::rollout::recorder::append_state_line;
 use codex_core::rollout::recorder::read_session_header_and_state;
 use std::path::Path;
@@ -146,7 +146,7 @@ fn collect_sessions(root: &Path, _limit: usize) -> std::io::Result<Vec<FullEntry
                 timestamp: meta.timestamp,
                 state,
                 path: entry.path().to_path_buf(),
-                cwd: meta.cwd.map(PathBuf::from),
+                cwd: Some(meta.cwd),
                 last_activity_ago: ago,
                 last_modified_epoch: epoch,
             });
