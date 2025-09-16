@@ -7,41 +7,25 @@ use std::path::PathBuf;
 #[command(version)]
 pub struct Cli {
     /// Optional user prompt to start the session.
+    #[arg(value_name = "PROMPT")]
     pub prompt: Option<String>,
 
     /// Optional image(s) to attach to the initial prompt.
     #[arg(long = "image", short = 'i', value_name = "FILE", value_delimiter = ',', num_args = 1..)]
     pub images: Vec<PathBuf>,
 
-    /// Open an interactive picker to resume a previous session recorded on disk
-    /// instead of starting a new one.
-    ///
-    /// Notes:
-    /// - Mutually exclusive with `--continue`.
-    /// - The picker displays recent sessions and a preview of the first real user
-    ///   message to help you select the right one.
-    #[arg(
-        long = "resume",
-        default_value_t = false,
-        conflicts_with = "continue",
-        hide = true
-    )]
-    pub resume: bool,
+    // Internal controls set by the top-level `codex resume` subcommand.
+    // These are not exposed as user flags on the base `codex` command.
+    #[clap(skip)]
+    pub resume_picker: bool,
 
-    /// Continue the most recent conversation without showing the picker.
-    ///
-    /// Notes:
-    /// - Mutually exclusive with `--resume`.
-    /// - If no recorded sessions are found, this behaves like starting fresh.
-    /// - Equivalent to picking the newest item in the resume picker.
-    #[arg(
-        id = "continue",
-        long = "continue",
-        default_value_t = false,
-        conflicts_with = "resume",
-        hide = true
-    )]
-    pub r#continue: bool,
+    #[clap(skip)]
+    pub resume_last: bool,
+
+    /// Internal: resume a specific recorded session by id (UUID). Set by the
+    /// top-level `codex resume <SESSION_ID>` wrapper; not exposed as a public flag.
+    #[clap(skip)]
+    pub resume_session_id: Option<String>,
 
     /// Model the agent should use.
     #[arg(long, short = 'm')]
@@ -87,6 +71,20 @@ pub struct Cli {
     /// Enable web search (off by default). When enabled, the native Responses `web_search` tool is available to the model (no per‑call approval).
     #[arg(long = "search", default_value_t = false)]
     pub web_search: bool,
+
+    /// Experimental: List recent sessions before starting and optionally pick one to resume.
+    /// Shows the last 10 sessions by default (newest first).
+    #[arg(long = "experimental-list-sessions", default_value_t = false)]
+    pub experimental_list_sessions: bool,
+
+    /// Experimental: Limit for the sessions list (default 10).
+    #[arg(long = "experimental-sessions-limit", value_name = "N")]
+    pub experimental_sessions_limit: Option<usize>,
+
+    /// Experimental: Resume from a saved session rollout (.jsonl).
+    /// If provided without a value, an interactive picker is shown.
+    #[arg(long = "experimental-resume", value_name = "FILE", num_args = 0..=1)]
+    pub experimental_resume: Option<Option<PathBuf>>,
 
     #[clap(skip)]
     pub config_overrides: CliConfigOverrides,

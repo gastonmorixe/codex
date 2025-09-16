@@ -37,7 +37,11 @@ use codex_protocol::protocol::SessionMeta;
 use codex_protocol::protocol::SessionMetaLine;
 
 #[derive(Serialize, Deserialize, Default, Clone)]
-pub struct SessionStateSnapshot {}
+pub struct SessionStateSnapshot {
+    /// Optional, user-assigned human-friendly name for the session.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
 
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct SavedSession {
@@ -204,7 +208,6 @@ impl RolloutRecorder {
 
     pub(crate) async fn get_rollout_history(path: &Path) -> std::io::Result<InitialHistory> {
         info!("Resuming rollout from {path:?}");
-        tracing::error!("Resuming rollout from {path:?}");
         let text = tokio::fs::read_to_string(path).await?;
         if text.trim().is_empty() {
             return Err(IoError::other("empty session file"));
@@ -254,7 +257,7 @@ impl RolloutRecorder {
             }
         }
 
-        tracing::error!(
+        info!(
             "Resumed rollout with {} items, conversation ID: {:?}",
             items.len(),
             conversation_id
@@ -292,6 +295,62 @@ impl RolloutRecorder {
             }
         }
     }
+}
+
+/// Read only the header `SessionMeta` and the latest `state` snapshot from a
+/// rollout file without opening it for append.
+pub fn read_session_header_and_state(
+    path: &Path,
+) -> std::io::Result<(SessionMeta, SessionStateSnapshot)> {
+    let text = std::fs::read_to_string(path)?;
+    let mut lines = text.lines();
+    let meta_line = lines
+        .next()
+        .ok_or_else(|| IoError::other("empty session file"))?;
+    let session: SessionMeta = serde_json::from_str(meta_line)
+        .map_err(|e| IoError::other(format!("failed to parse session meta: {e}")))?;
+    let mut state = SessionStateSnapshot::default();
+    for line in lines {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let v: serde_json::Value = match serde_json::from_str(line) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        if v.get("record_type")
+            .and_then(|rt| rt.as_str())
+            .map(|s| s == "state")
+            .unwrap_or(false)
+        {
+            if let Ok(s) = serde_json::from_value::<SessionStateSnapshot>(v.clone()) {
+                state = s
+            }
+        }
+    }
+    Ok((session, state))
+}
+
+/// Append a `state` record to the rollout file. This is used by CLI commands
+/// to update session metadata (e.g., a human-friendly name) after the session
+/// has ended.
+pub fn append_state_line(path: &Path, state: &SessionStateSnapshot) -> std::io::Result<()> {
+    #[derive(Serialize)]
+    struct StateLine<'a> {
+        record_type: &'static str,
+        #[serde(flatten)]
+        state: &'a SessionStateSnapshot,
+    }
+    let mut f = std::fs::OpenOptions::new().append(true).open(path)?;
+    let line = serde_json::to_string(&StateLine {
+        record_type: "state",
+        state,
+    })?;
+    use std::io::Write as _;
+    f.write_all(line.as_bytes())?;
+    f.write_all(b"\n")?;
+    f.flush()?;
+    Ok(())
 }
 
 struct LogFileInfo {

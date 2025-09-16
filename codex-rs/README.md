@@ -92,6 +92,38 @@ codex --sandbox danger-full-access
 
 The same setting can be persisted in `~/.codex/config.toml` via the top-level `sandbox_mode = "MODE"` key, e.g. `sandbox_mode = "workspace-write"`.
 
+### Sessions: resume, pick, and name
+
+Codex records each interactive session as a JSONL “rollout” under `~/.codex/sessions/YYYY/MM/DD/rollout-<timestamp>-<uuid>.jsonl`.
+
+- Resume directly:
+  - `codex --experimental-resume /absolute/path/to/rollout-...jsonl`
+- Open a picker of recent sessions (newest first):
+  - `codex --experimental-list-sessions`
+  - Limit rows: `codex --experimental-list-sessions --experimental-sessions-limit 25`
+- Prompted resume (picker) when you don’t pass a path:
+  - `codex --experimental-resume`
+
+The picker uses the same TUI look-and-feel and now includes richer context:
+- Up/Down/PageUp/PageDown/Home/End: navigate; Enter: resume; Esc: cancel.
+- Two-line rows: time, 8-char id, bold title, badges for `[branch]`, approximate turns, and duration; secondary line shows repo host + short SHA + shortened path.
+- Footer preview: shows first user prompt and last assistant reply snippets; warns if recorded `cwd` differs from your current `cwd`, and if repository hosts differ.
+- Actions: `r` rename (persists to rollout), `d` delete (confirm), `u` undo delete, `y` copy path, `c` copy full UUID, `i` copy 8-char id.
+- Filter: `/` to filter; type to live-filter title/branch/repo/path; Enter keeps filter; Esc clears.
+
+
+There’s also a sessions multitool:
+
+```
+codex sessions list [-n 25] [--json]
+codex sessions name <id-or-path> "My Friendly Name"
+```
+
+Notes:
+- `<id-or-path>` accepts a rollout path or a UUID prefix (first 8 chars).
+- Names are stored as `state` records appended to the rollout file; headers are not rewritten.
+- Titles can also be generated automatically (enabled by default) — see `auto_session_title` in `docs/config.md`.
+
 ## Code Organization
 
 This folder is the root of a Cargo workspace. It contains quite a bit of experimental code, but here are the key crates:

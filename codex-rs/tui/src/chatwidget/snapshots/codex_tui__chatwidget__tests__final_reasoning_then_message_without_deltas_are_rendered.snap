@@ -1,5 +1,6 @@
 ---
 source: tui/src/chatwidget/tests.rs
+assertion_line: 1534
 expression: combined
 ---
 > Here is the result.

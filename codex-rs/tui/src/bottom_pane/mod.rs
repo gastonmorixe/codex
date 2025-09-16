@@ -42,6 +42,9 @@ use crate::status_indicator_widget::StatusIndicatorWidget;
 use approval_modal_view::ApprovalModalView;
 pub(crate) use list_selection_view::SelectionAction;
 pub(crate) use list_selection_view::SelectionItem;
+pub(crate) use scroll_state::ScrollState;
+pub(crate) use selection_popup_common::GenericDisplayRow;
+pub(crate) use selection_popup_common::render_rows;
 
 /// Pane displayed in the lower half of the chat UI.
 pub(crate) struct BottomPane {

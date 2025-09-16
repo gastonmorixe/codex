@@ -11,6 +11,7 @@ use codex_protocol::models::ResponseItem;
 use codex_protocol::protocol::ENVIRONMENT_CONTEXT_CLOSE_TAG;
 use codex_protocol::protocol::ENVIRONMENT_CONTEXT_OPEN_TAG;
 use std::path::PathBuf;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, DeriveDisplay)]
 #[serde(rename_all = "kebab-case")]
@@ -28,6 +29,10 @@ pub(crate) struct EnvironmentContext {
     pub network_access: Option<NetworkAccess>,
     pub writable_roots: Option<Vec<PathBuf>>,
     pub shell: Option<Shell>,
+    /// Unique identifier for this session (UUID v4).
+    pub session_id: Option<Uuid>,
+    /// Human-friendly session title, if known.
+    pub session_title: Option<String>,
 }
 
 impl EnvironmentContext {
@@ -69,7 +74,20 @@ impl EnvironmentContext {
                 _ => None,
             },
             shell,
+            session_id: None,
+            session_title: None,
         }
+    }
+
+    /// Attach session metadata (id and optional title) to the context.
+    pub fn with_session_meta(mut self, session_id: Uuid, session_title: Option<String>) -> Self {
+        self.session_id = Some(session_id);
+        if let Some(title) = session_title
+            && !title.trim().is_empty()
+        {
+            self.session_title = Some(title);
+        }
+        self
     }
 }
 
@@ -120,6 +138,12 @@ impl EnvironmentContext {
             && let Some(shell_name) = shell.name()
         {
             lines.push(format!("  <shell>{shell_name}</shell>"));
+        }
+        if let Some(id) = self.session_id {
+            lines.push(format!("  <session_id>{id}</session_id>"));
+        }
+        if let Some(title) = self.session_title {
+            lines.push(format!("  <session_title>{title}</session_title>"));
         }
         lines.push(ENVIRONMENT_CONTEXT_CLOSE_TAG.to_string());
         lines.join("\n")

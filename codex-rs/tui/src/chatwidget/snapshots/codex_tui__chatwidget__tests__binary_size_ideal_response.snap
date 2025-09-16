@@ -1,9 +1,9 @@
 ---
 source: tui/src/chatwidget/tests.rs
-assertion_line: 648
+assertion_line: 814
 expression: visible_after
 ---
-> I’m going to scan the workspace and Cargo manifests to see build profiles and
+I’m going to scan the workspace and Cargo manifests to see build profiles and
   dependencies that impact binary size. Then I’ll summarize the main causes.
 
 • Explored
@@ -19,7 +19,7 @@ expression: visible_after
 • Explored
   └ Read Cargo.toml
 
-> Here’s what’s driving size in this workspace’s binaries.
+Here’s what’s driving size in this workspace’s binaries.
 
   Main Causes
 
